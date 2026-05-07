@@ -111,7 +111,7 @@ $(BUILD_DIR):
 # Print size of each section in the ELF
 size: $(BUILD_DIR)/$(TARGET).elf
 	@echo ""
-	@$(SIZE) $
+	@$(SIZE) $(BUILD_DIR)/$(TARGET).elf
 
 # Flash the binary to the chip via ST-LINK
 flash: $(BUILD_DIR)/$(TARGET).bin
