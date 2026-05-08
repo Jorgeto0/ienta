@@ -51,7 +51,7 @@ ienta/
 
 ## Development Phases
 
-- **Phase 0:** Foundations (current)
+- **Phase 0:** Foundations 
 - **Phase 1:** Embedded system development
 - **Phase 2:** Energy measurement engine
 - **Phase 3:** AI device detection
