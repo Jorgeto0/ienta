@@ -33,12 +33,24 @@ SIZE     = $(PREFIX)size
 BUILD_DIR  = build
 CORE_DIR   = Core
 CMSIS_DIR  = Drivers/CMSIS
+HAL_DIR    = Drivers/STM32F4xx_HAL_Driver
 LINKER_DIR = Linker
 
 # ---- Source files ----
 C_SOURCES = \
   $(CORE_DIR)/Src/main.c \
-  $(CMSIS_DIR)/Device/ST/STM32F4xx/Source/system_stm32f4xx.c
+  $(CMSIS_DIR)/Device/ST/STM32F4xx/Source/system_stm32f4xx.c \
+  $(HAL_DIR)/Src/stm32f4xx_hal.c \
+  $(HAL_DIR)/Src/stm32f4xx_hal_rcc.c \
+  $(HAL_DIR)/Src/stm32f4xx_hal_rcc_ex.c \
+  $(HAL_DIR)/Src/stm32f4xx_hal_gpio.c \
+  $(HAL_DIR)/Src/stm32f4xx_hal_cortex.c \
+  $(HAL_DIR)/Src/stm32f4xx_hal_uart.c \
+  $(HAL_DIR)/Src/stm32f4xx_hal_pwr.c \
+  $(HAL_DIR)/Src/stm32f4xx_hal_flash.c \
+  $(HAL_DIR)/Src/stm32f4xx_hal_flash_ex.c \
+  $(HAL_DIR)/Src/stm32f4xx_hal_flash_ramfunc.c \
+  $(HAL_DIR)/Src/stm32f4xx_hal_dma.c
 
 ASM_SOURCES = \
   $(CMSIS_DIR)/Device/ST/STM32F4xx/Source/startup_stm32f401xe.s
@@ -47,7 +59,8 @@ ASM_SOURCES = \
 C_INCLUDES = \
   -I$(CORE_DIR)/Inc \
   -I$(CMSIS_DIR)/Device/ST/STM32F4xx/Include \
-  -I$(CMSIS_DIR)/Include
+  -I$(CMSIS_DIR)/Include \
+  -I$(HAL_DIR)/Inc
 
 # ---- Preprocessor defines ----
 C_DEFS = -D$(MCU)
