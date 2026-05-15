@@ -1,80 +1,115 @@
 # Ienta — Autonomous Energy Intelligence System
 
-**Privacy-first edge AI for luxury residential energy management**
+An energy intelligence system installed inside a home's electrical panel.
+Measures electricity in real time, detects individual devices from their
+electrical signatures, predicts failures, and optimizes usage.
 
-## Overview
+---
 
-Ienta is an autonomous energy intelligence system that operates entirely locally within a home's electrical panel. It provides real-time energy measurement, AI-powered device detection, and predictive failure analysis without cloud dependency.
+## What it does
 
-## Project Status
+- **Measures** — voltage, current, real power, power factor at 4 kHz
+- **Detects** — identifies individual devices from electrical signatures (edge AI)
+- **Predicts** — flags anomalies and failure patterns before they happen
+- **Optimizes** — automates energy usage based on learned behavior
 
-**Current Phase:** Phase 0 — Foundations  
-**Hardware:** Not yet acquired  
-**Development Environment:** In setup
+---
 
-## System Architecture
+## Current status
 
-```
-AC Mains → CT Sensors → Signal Conditioning → STM32 MCU → Edge AI Processor → Application
-```
+| Phase | Name | Status |
+|-------|------|--------|
+| 0 | Foundations | ✅ Complete |
+| 1 | Embedded system (STM32 firmware) | 🔄 In progress |
+| 2 | Energy measurement engine | ⏳ Pending |
+| 3 | Device detection AI | ⏳ Pending |
+| 4 | Edge AI integration | ⏳ Pending |
+| 5 | Application layer | ⏳ Pending |
+| 6 | Product prototype | ⏳ Pending |
 
-### Key Components
-- **Firmware (C):** Real-time data acquisition and processing on STM32
-- **AI Engine (Python):** Device classification and anomaly detection
-- **Application:** User interface and control
+---
 
-## Repository Structure
+## Repository structure
 
 ```
 ienta/
-├── docs/           # System documentation
-├── firmware/       # STM32 embedded code (C)
-├── ai/            # Machine learning components (Python)
-├── tools/         # Utilities and scripts
-└── hardware/      # Circuit designs and schematics
+├── firmware/           # STM32 embedded firmware (C, bare-metal)
+│   ├── Core/
+│   │   ├── Inc/        # Headers — drivers, types, flags
+│   │   └── Src/        # Source — drivers, signal processing, main
+│   ├── Drivers/        # STM32 HAL (generated, never manually edited)
+│   ├── Linker/         # Linker script
+│   └── Makefile
+├── ai/                 # Device detection and anomaly AI (Python)
+│   ├── data/
+│   ├── models/
+│   └── training/
+├── hardware/           # Schematics and PCB design
+│   ├── schematics/
+│   └── pcb/
+├── tools/              # Calibration and testing utilities
+│   ├── calibration/
+│   └── testing/
+└── docs/               # Engineering documentation
 ```
 
-## Technical Specifications
+---
 
-### Performance Requirements
-- Sampling rate: ≥5kHz
-- Voltage accuracy: ±1%
-- Current accuracy: ±2%
-- Power accuracy: ±3%
-- AI classification: ≥90%
-- Latency: <1 second
+## Technical specifications
 
-### Hardware Platform
-- MCU: STM32 (≥12-bit ADC)
-- Sensors: CT current transformers (±1%)
-- Edge AI: TBD (likely Raspberry Pi)
+| Parameter | Value |
+|-----------|-------|
+| Sample rate | 4 kHz (80 samples per 50 Hz AC cycle) |
+| ADC resolution | 12-bit, dual-channel |
+| Voltage accuracy | ±1% |
+| Current accuracy | ±2% |
+| Power accuracy | ±3% |
+| AI classification | ≥90% |
+| Firmware latency | <20 ms per cycle |
+| AI inference | <1 second |
 
-## Development Phases
+---
 
-- **Phase 0:** Foundations (current)
-- **Phase 1:** Embedded system development
-- **Phase 2:** Energy measurement engine
-- **Phase 3:** AI device detection
-- **Phase 4:** Edge AI integration
-- **Phase 5:** Application layer
-- **Phase 6:** Product prototype
+## Hardware platform
+
+| Component | Choice |
+|-----------|--------|
+| MCU | STM32F4xx (Nucleo-F446RE or F401RE) |
+| Current sensor | SCT-013-000 CT sensor |
+| Voltage sensing | 230V:9V isolation transformer |
+| Edge AI processor | TBD at Phase 4 |
+
+---
 
 ## Documentation
 
-See `docs/` directory for:
-- System architecture
-- Firmware design
-- AI model documentation
-- Hardware specifications
+Full engineering documentation in [docs/](docs/README.md).
 
-## Building
+| Topic | File |
+|-------|------|
+| System overview | [docs/architecture/SYSTEM_OVERVIEW.md](docs/architecture/SYSTEM_OVERVIEW.md) |
+| Firmware architecture | [docs/firmware/FIRMWARE_ARCHITECTURE.md](docs/firmware/FIRMWARE_ARCHITECTURE.md) |
+| ADC and DMA | [docs/firmware/ADC_AND_DMA.md](docs/firmware/ADC_AND_DMA.md) |
+| Coding standards | [docs/firmware/CODING_STANDARDS.md](docs/firmware/CODING_STANDARDS.md) |
+| Signal chain | [docs/hardware/SIGNAL_CHAIN.md](docs/hardware/SIGNAL_CHAIN.md) |
+| AI system | [docs/ai/AI_SYSTEM.md](docs/ai/AI_SYSTEM.md) |
+| Phase log | [docs/PHASE_LOG.md](docs/PHASE_LOG.md) |
 
-*Build instructions will be added in Phase 1*
+---
+
+## Building the firmware
+
+```bash
+cd firmware
+make        # compile
+make flash  # flash to board via ST-LINK
+make clean  # clean build artifacts
+```
+
+*Full build instructions added in Phase 1.*
+
+---
 
 ## License
 
-*To be determined*
-
-## Contact
-
-*Project maintainer information*
+To be determined.
