@@ -1,82 +1,56 @@
-# Phase 1 - Embedded System
-**Status:** In progress
-**Started:** TBD
+# Phase 1 — Embedded System
+
+## Purpose
+
+Implement the STM32 data acquisition pipeline using timer-triggered ADC,
+DMA double-buffering, and UART transmission. No real sensors. No signal
+processing. The goal is a correct, loss-free pipeline running continuously.
 
 ---
 
-## Goal
+## Firmware modules
 
-Prove the full data acquisition pipeline on real hardware.
-No real sensors yet. The pipeline itself is the deliverable.
-
----
-
-## Exit criterion
-
-STM32 samples 80 values per channel (voltage + current), 50 times per
-second, continuously, with zero data loss, for 1+ hour.
-
----
-
-## What this phase does NOT include
-
-- No CT sensor or isolation transformer (Phase 2)
-- No RMS or power calculations (Phase 2)
-- No real AC signal - test signal only
-- No AI (Phase 3+)
+| Module | Responsibility |
+|--------|---------------|
+| adc_driver.c | Timer-triggered dual-channel ADC via DMA double-buffer |
+| uart_driver.c | 14-byte packet transmission over USART2 |
+| timer_driver.c | TIM2 configured to trigger ADC at exactly 4 kHz |
+| gpio_driver.c | LED indication and relay control |
+| cbuf.c | Generic circular byte buffer shared across drivers |
+| ienta_types.h | Shared data structures: measurement_t, uart_packet_t |
+| ienta_flags.h | Flag bit constants: VALID, ANOMALY, OVERRANGE, DEVICE |
+| main.c | State machine: IDLE, SAMPLING, PROCESSING, TX_SEND, ERROR |
 
 ---
 
-## Hardware
+## ADC pipeline
 
-STM32 Nucleo-F446RE or F401RE. ST-LINK via USB. Nothing else.
-
----
-
-## Steps
-
-| Step | Name | Status | Commit |
-|------|------|--------|--------|
-| 1 | Hardware arrival + inspection | Pending | |
-| 2 | Environment setup + blink LED | Pending | |
-| 3 | UART communication to Mac | Pending | |
-| 4 | ADC single-channel polling | Pending | |
-| 5 | Timer-triggered ADC at 4 kHz | Pending | |
-| 6 | DMA configuration | Pending | |
-| 7 | Double buffering | Pending | |
-| 8 | Dual-channel ADC V + I simultaneous | Pending | |
-| 9 | UART packet transmission | Pending | |
-| 10 | Stress test 1 hour continuous | Pending | |
-| 11 | Code cleanup + documentation | Pending | |
+TIM2 triggers ADC conversion every 250 us at 4 kHz. DMA transfers each
+result directly to SRAM with no CPU involvement. On transfer-complete
+interrupt the active buffer index swaps, DMA restarts on the fresh buffer,
+and the main loop processes the idle buffer in parallel. Zero samples lost.
 
 ---
 
-## Files added this phase
+## UART packet format
 
-| File | Purpose |
-|------|---------|
-| firmware/Core/Inc/ienta_types.h | measurement_t and uart_packet_t structs |
-| firmware/Core/Inc/ienta_flags.h | Flag bit constants |
-| firmware/Core/Inc/cbuf.h | Circular buffer interface |
-| firmware/Core/Src/cbuf.c | Circular buffer implementation |
-| firmware/Core/Inc/adc_driver.h | ADC driver interface |
-| firmware/Core/Src/adc_driver.c | ADC + DMA acquisition |
-| firmware/Core/Inc/uart_driver.h | UART driver interface |
-| firmware/Core/Src/uart_driver.c | UART packet transmission |
-| firmware/Core/Inc/timer_driver.h | Timer driver interface |
-| firmware/Core/Src/timer_driver.c | TIM2 4 kHz trigger |
-| firmware/Core/Inc/gpio_driver.h | GPIO driver interface |
-| firmware/Core/Src/gpio_driver.c | LED and relay control |
-| firmware/Core/Src/main.c | State machine |
+14 bytes per packet transmitted at 50 Hz:
+
+| Field | Type | Encoding |
+|-------|------|----------|
+| Start byte | uint8 | Always 0xAA |
+| Voltage | uint16 | Vrms x 10 |
+| Current | uint16 | Irms x 100 |
+| Power | uint16 | Watts x 1 |
+| Power factor | uint16 | PF x 100 |
+| Flags | uint8 | Bit field |
+| Reserved | uint16 | — |
+| Checksum | uint8 | — |
 
 ---
 
-## Decisions made this phase
+## Validation
 
-| Decision | Value | Reason |
-|----------|-------|--------|
-
----
-
-## Problems hit and resolved
-
+Two ADC channels sampled at 4 kHz, 80 samples per cycle, transmitted
+at 50 Hz over UART. Verified with logic analyser or serial monitor.
+No data loss under continuous operation.
