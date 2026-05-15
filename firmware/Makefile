@@ -93,7 +93,7 @@ vpath %.s $(sort $(dir $(ASM_SOURCES)))
 # Rules
 # ============================================================
 
-.PHONY: all clean flash size info
+.PHONY: all clean flash size info check
 
 all: $(BUILD_DIR)/$(TARGET).bin size
 
@@ -143,3 +143,16 @@ info:
 clean:
 	@echo "  CLEAN"
 	@rm -rf $(BUILD_DIR)
+
+# ============================================================
+# Static analysis
+# ============================================================
+
+CPPCHECK = cppcheck
+CPPCHECK_FLAGS =   --enable=warning,style,performance   --std=c11   --suppress=missingIncludeSystem   --error-exitcode=1   $(addprefix -I,$(patsubst -I%,%,$(C_INCLUDES)))   --quiet
+
+.PHONY: check
+check:
+	@echo "  CHECK   Core/Src"
+	@$(CPPCHECK) $(CPPCHECK_FLAGS) $(CORE_DIR)/Src
+	@echo "  CHECK   passed"
