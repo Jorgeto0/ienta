@@ -58,7 +58,7 @@ int main(void)
      * XOR with the bit toggles it on each pass. */
     while (1) {
         GPIOA->ODR ^= GPIO_ODR_OD5;
-        delay_busy(500000);
+        delay_busy(1);
     }
 
     /* Unreachable; bare-metal main never returns. */
