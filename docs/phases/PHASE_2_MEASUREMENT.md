@@ -1,42 +1,44 @@
-# Phase 2 - Energy Measurement Engine
-**Status:** Pending
+# Phase 2 — Energy Measurement Engine
+
+## Purpose
+
+Connect real sensors and validate measurement accuracy against known
+reference loads. Introduces signal processing and calibration.
 
 ---
 
-## Goal
+## Scope
 
-Accurate real-world V/I/P/PF measurement with physical sensors,
-calibrated against known loads.
+### Hardware introduced
 
----
+| Component | Specification |
+|-----------|--------------|
+| CT sensor | SCT-013-000, 2000:1 turns ratio, 120 ohm burden resistor |
+| Isolation transformer | 230V:9V, galvanically isolated |
+| Anti-aliasing filter | RC lowpass, fc ~1.6 kHz |
+| Input protection | Schottky clamp diodes on both ADC inputs |
 
-## Exit criterion
+### Firmware modules introduced
 
-+/-1% voltage, +/-2% current, +/-3% power, validated against a
-calibrated multimeter, running continuously for 1+ hour without drift.
+| Module | Responsibility |
+|--------|---------------|
+|  | compute_rms(), compute_power(), compute_pf() |
+|  | Converts measurement_t to uart_packet_t with calibrated scale factors |
 
----
+### Calibration
 
-## Prerequisites
+Scale factors V_SCALE and I_SCALE are adjusted against a known
+resistive load measured simultaneously with a calibrated multimeter.
 
-Phase 1 exit criterion must be met before this phase begins.
+### Accuracy targets
 
----
+| Measurement | Target |
+|-------------|--------|
+| Voltage RMS | +/-1% |
+| Current RMS | +/-2% |
+| Real power | +/-3% |
 
-## Hardware to acquire
+### Exit criterion
 
-| Item | Cost |
-|------|------|
-| SCT-013-000 CT sensor | -15 |
-| 230V:9V isolation transformer | -12 |
-| 120 ohm burden resistor | < |
-| RC filter components | ~ |
-
----
-
-## Calibration
-
-| Constant | Initial value | Calibrated value | Date |
-|----------|--------------|-----------------|------|
-| V_SCALE | 0.1611f | TBD | |
-| I_SCALE | 0.0333f | TBD | |
+All three accuracy targets met on a known load, running continuously
+for 1+ hour without drift.

@@ -1,82 +1,54 @@
-# Phase 1 - Embedded System
-**Status:** In progress
-**Started:** TBD
+# Phase 1 — Embedded System
+
+## Purpose
+
+Implement and validate the STM32 data acquisition pipeline.
+Proves that the firmware can sample two ADC channels at 4 kHz using
+DMA double-buffering and transmit structured packets over UART —
+continuously, with zero data loss.
+
+No real sensors. No signal processing. Pipeline correctness only.
 
 ---
 
-## Goal
+## Scope
 
-Prove the full data acquisition pipeline on real hardware.
-No real sensors yet. The pipeline itself is the deliverable.
+### Firmware modules introduced
 
----
+| Module | Responsibility |
+|--------|---------------|
+|  | Timer-triggered dual-channel ADC via DMA double-buffer |
+|  | 14-byte packet transmission over USART2 |
+|  | TIM2 configured to trigger ADC at exactly 4 kHz |
+|  | LED indication and relay control |
+|  | Generic circular byte buffer shared across drivers |
+|  | Shared data structures: measurement_t, uart_packet_t |
+|  | Flag bit constants: VALID, ANOMALY, OVERRANGE, DEVICE |
+|  | Top-level state machine: IDLE → SAMPLING → PROCESSING → TX |
 
-## Exit criterion
+### ADC pipeline
 
-STM32 samples 80 values per channel (voltage + current), 50 times per
-second, continuously, with zero data loss, for 1+ hour.
+Timer TIM2 triggers ADC conversion every 250 µs (4 kHz).
+DMA transfers each result directly to SRAM — no CPU involvement.
+On transfer-complete interrupt: swap active buffer, restart DMA,
+signal main loop. Main loop processes the idle buffer in ~1.5 ms
+while DMA fills the fresh one in parallel.
 
----
+### UART packet format
 
-## What this phase does NOT include
+14 bytes per packet, 50 packets per second:
 
-- No CT sensor or isolation transformer (Phase 2)
-- No RMS or power calculations (Phase 2)
-- No real AC signal - test signal only
-- No AI (Phase 3+)
+| Field | Type | Scale |
+|-------|------|-------|
+| Start byte | uint8 | 0xAA |
+| Voltage | uint16 | Vrms x 10 |
+| Current | uint16 | Irms x 100 |
+| Power | uint16 | Watts x 1 |
+| Power factor | uint16 | PF x 100 |
+| Flags | uint8 | Bit field |
+| Reserved | uint16 | — |
+| Checksum | uint8 | — |
 
----
+### Exit criterion
 
-## Hardware
-
-STM32 Nucleo-F446RE or F401RE. ST-LINK via USB. Nothing else.
-
----
-
-## Steps
-
-| Step | Name | Status | Commit |
-|------|------|--------|--------|
-| 1 | Hardware arrival + inspection | Pending | |
-| 2 | Environment setup + blink LED | Pending | |
-| 3 | UART communication to Mac | Pending | |
-| 4 | ADC single-channel polling | Pending | |
-| 5 | Timer-triggered ADC at 4 kHz | Pending | |
-| 6 | DMA configuration | Pending | |
-| 7 | Double buffering | Pending | |
-| 8 | Dual-channel ADC V + I simultaneous | Pending | |
-| 9 | UART packet transmission | Pending | |
-| 10 | Stress test 1 hour continuous | Pending | |
-| 11 | Code cleanup + documentation | Pending | |
-
----
-
-## Files added this phase
-
-| File | Purpose |
-|------|---------|
-| firmware/Core/Inc/ienta_types.h | measurement_t and uart_packet_t structs |
-| firmware/Core/Inc/ienta_flags.h | Flag bit constants |
-| firmware/Core/Inc/cbuf.h | Circular buffer interface |
-| firmware/Core/Src/cbuf.c | Circular buffer implementation |
-| firmware/Core/Inc/adc_driver.h | ADC driver interface |
-| firmware/Core/Src/adc_driver.c | ADC + DMA acquisition |
-| firmware/Core/Inc/uart_driver.h | UART driver interface |
-| firmware/Core/Src/uart_driver.c | UART packet transmission |
-| firmware/Core/Inc/timer_driver.h | Timer driver interface |
-| firmware/Core/Src/timer_driver.c | TIM2 4 kHz trigger |
-| firmware/Core/Inc/gpio_driver.h | GPIO driver interface |
-| firmware/Core/Src/gpio_driver.c | LED and relay control |
-| firmware/Core/Src/main.c | State machine |
-
----
-
-## Decisions made this phase
-
-| Decision | Value | Reason |
-|----------|-------|--------|
-
----
-
-## Problems hit and resolved
-
+80 samples per channel, 50 cycles per second, zero data loss, 1+ hour continuous.
