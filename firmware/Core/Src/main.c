@@ -34,32 +34,30 @@
 /* Crude busy-wait. Iteration count tuned by feel; exact period
  * depends on -O level and CPU clock. We just need "blink slow
  * enough to see." */
-static void delay_busy(volatile uint32_t cycles)
-{
-    while (cycles--) {
-        __asm__ volatile ("nop");
-    }
+static void delay_busy(volatile uint32_t cycles) {
+  while (cycles--) {
+    __asm__ volatile("nop");
+  }
 }
 
-int main(void)
-{
-    /* --- Step 1: enable the GPIOA peripheral clock. --- */
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+int main(void) {
+  /* --- Step 1: enable the GPIOA peripheral clock. --- */
+  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
 
-    /* --- Step 2: configure PA5 as a general-purpose output. ---
-     * MODER has 2 bits per pin. PA5 occupies bits [11:10].
-     * We must clear both bits first, then set bit 10 (mode = 01).
-     * The named macros from stm32f401xe.h make this explicit. */
-    GPIOA->MODER &= ~GPIO_MODER_MODER5;          /* clear bits [11:10] */
-    GPIOA->MODER |=  GPIO_MODER_MODER5_0;        /* set bit 10 (mode = 01, output) */
+  /* --- Step 2: configure PA5 as a general-purpose output. ---
+   * MODER has 2 bits per pin. PA5 occupies bits [11:10].
+   * We must clear both bits first, then set bit 10 (mode = 01).
+   * The named macros from stm32f401xe.h make this explicit. */
+  GPIOA->MODER &= ~GPIO_MODER_MODER5;  /* clear bits [11:10] */
+  GPIOA->MODER |= GPIO_MODER_MODER5_0; /* set bit 10 (mode = 01, output) */
 
-    /* --- Step 3: blink forever. ---
-     * ODR bit 5 controls PA5's output level.
-     * XOR with the bit toggles it on each pass. */
-    while (1) {
-        GPIOA->ODR ^= GPIO_ODR_OD5;
-        delay_busy(1);
-    }
+  /* --- Step 3: blink forever. ---
+   * ODR bit 5 controls PA5's output level.
+   * XOR with the bit toggles it on each pass. */
+  while (1) {
+    GPIOA->ODR ^= GPIO_ODR_OD5;
+    delay_busy(1);
+  }
 
-    /* Unreachable; bare-metal main never returns. */
+  /* Unreachable; bare-metal main never returns. */
 }
