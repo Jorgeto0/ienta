@@ -1,0 +1,44 @@
+---
+# Ienta firmware — clang-format configuration
+# Style: LLVM base with embedded C adjustments
+# Apply: make format
+# Check: make format-check
+
+BasedOnStyle: LLVM
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+
+# Line length
+ColumnLimit: 80
+
+# Braces — attach to control statements, function on new line
+BreakBeforeBraces: Linux
+
+# Alignment
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveDeclarations: Consecutive
+AlignTrailingComments: true
+AlignConsecutiveMacros: Consecutive
+
+# Pointers — int *ptr not int* ptr
+PointerAlignment: Right
+
+# Includes
+SortIncludes: false
+
+# Function parameters — keep short calls on one line
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Spaces
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesInCStyleCastParentheses: false
+
+# Comments
+ReflowComments: false

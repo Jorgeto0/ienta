@@ -66,34 +66,45 @@ C_INCLUDES = \
 C_DEFS = -D$(MCU)
 
 # ---- CPU / FPU flags (Cortex-M4F) ----
-CPU      = -mcpu=cortex-m4
-FPU      = -mfpu=fpv4-sp-d16
+CPU       = -mcpu=cortex-m4
+FPU       = -mfpu=fpv4-sp-d16
 FLOAT_ABI = -mfloat-abi=hard
 MCU_FLAGS = $(CPU) -mthumb $(FPU) $(FLOAT_ABI)
 
 # ---- Compiler flags ----
-CFLAGS  = $(MCU_FLAGS) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -Wextra -fdata-sections -ffunction-sections -g3 -gdwarf-2
+CFLAGS = $(MCU_FLAGS) $(C_DEFS) $(C_INCLUDES) $(OPT) \
+         -Wall -Wextra -fdata-sections -ffunction-sections \
+         -g3 -gdwarf-2
 
 # ---- Assembler flags ----
-ASFLAGS = $(MCU_FLAGS) $(OPT) -Wall -fdata-sections -ffunction-sections -g3 -gdwarf-2
+ASFLAGS = $(MCU_FLAGS) $(OPT) -Wall \
+          -fdata-sections -ffunction-sections -g3 -gdwarf-2
 
 # ---- Linker flags ----
 LDSCRIPT = $(LINKER_DIR)/STM32F401RETX_FLASH.ld
-LDFLAGS  = $(MCU_FLAGS) -T$(LDSCRIPT) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections --specs=nano.specs --specs=nosys.specs
+LDFLAGS  = $(MCU_FLAGS) \
+           -T$(LDSCRIPT) \
+           -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref \
+           -Wl,--gc-sections \
+           --specs=nano.specs \
+           --specs=nosys.specs
 
 # ---- Object files (mirror source tree under build/) ----
 OBJECTS  = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 
-# Tell make where to find the original sources for those flat object names
+# Tell make where to find the original sources for flat object names
 vpath %.c $(sort $(dir $(C_SOURCES)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
+
+# ---- Files to format / check (Core only — never Drivers/) ----
+FORMAT_SOURCES = $(wildcard $(CORE_DIR)/Src/*.c $(CORE_DIR)/Inc/*.h)
 
 # ============================================================
 # Rules
 # ============================================================
 
-.PHONY: all clean flash size info check
+.PHONY: all clean flash size info check format format-check
 
 all: $(BUILD_DIR)/$(TARGET).bin size
 
@@ -145,14 +156,39 @@ clean:
 	@rm -rf $(BUILD_DIR)
 
 # ============================================================
-# Static analysis
+# Static analysis — cppcheck
+# Runs on Core/Src and Core/Inc only. Never on Drivers/.
 # ============================================================
 
-CPPCHECK = cppcheck
-CPPCHECK_FLAGS =   --enable=warning,style,performance   --std=c11   --suppress=missingIncludeSystem   --error-exitcode=1   $(addprefix -I,$(patsubst -I%,%,$(C_INCLUDES)))   --quiet
+CPPCHECK       = cppcheck
+CPPCHECK_FLAGS = \
+  --enable=warning,style,performance \
+  --std=c11 \
+  --suppress=missingIncludeSystem \
+  --suppress=unusedFunction \
+  --error-exitcode=1 \
+  --quiet \
+  $(addprefix -I,$(patsubst -I%,%,$(C_INCLUDES)))
 
-.PHONY: check
 check:
-	@echo "  CHECK   Core/Src"
-	@$(CPPCHECK) $(CPPCHECK_FLAGS) $(CORE_DIR)/Src
+	@echo "  CHECK   $(CORE_DIR)/Src $(CORE_DIR)/Inc"
+	@$(CPPCHECK) $(CPPCHECK_FLAGS) $(CORE_DIR)/Src $(CORE_DIR)/Inc
 	@echo "  CHECK   passed"
+
+# ============================================================
+# Code formatting — clang-format
+# format:       apply formatting in-place to Core/ files
+# format-check: verify formatting, fail if any diff found (CI)
+# ============================================================
+
+CLANG_FORMAT = clang-format
+
+format:
+	@echo "  FORMAT  $(CORE_DIR)/Src $(CORE_DIR)/Inc"
+	@$(CLANG_FORMAT) -i $(FORMAT_SOURCES)
+	@echo "  FORMAT  done"
+
+format-check:
+	@echo "  FORMAT-CHECK $(CORE_DIR)/Src $(CORE_DIR)/Inc"
+	@$(CLANG_FORMAT) --dry-run --Werror $(FORMAT_SOURCES)
+	@echo "  FORMAT-CHECK passed"
