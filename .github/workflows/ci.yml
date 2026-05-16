@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, 'feat/**', 'fix/**', 'chore/**' ]
   pull_request:
     branches: [ main ]
 
@@ -20,11 +20,15 @@ jobs:
         with:
           release: latest
 
-      - name: Install cppcheck
-        run: sudo apt-get install -y cppcheck
+      - name: Install tools
+        run: sudo apt-get install -y cppcheck clang-format
 
       - name: Verify toolchain
         run: arm-none-eabi-gcc --version
+
+      - name: Check formatting
+        working-directory: firmware
+        run: make format-check
 
       - name: Build firmware
         working-directory: firmware
