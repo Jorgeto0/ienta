@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-analyse:
+    name: Build and analyse firmware
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install ARM toolchain
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+        with:
+          release: latest
+
+      - name: Install cppcheck
+        run: sudo apt-get install -y cppcheck
+
+      - name: Verify toolchain
+        run: arm-none-eabi-gcc --version
+
+      - name: Build firmware
+        working-directory: firmware
+        run: make BUILD=dev
+
+      - name: Run static analysis
+        working-directory: firmware
+        run: make check
+
+      - name: Print firmware size
+        working-directory: firmware
+        run: make size
